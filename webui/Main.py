@@ -191,7 +191,7 @@ LOOMLOOM_VIDEO_MODEL_PRICES = (
 )
 DEFAULT_SUBTITLE_SETTINGS = {
     "subtitle_enabled": True,
-    "font_name": "MicrosoftYaHeiBold.ttc",
+    "font_name": "BeVietnamPro-Bold.ttf",
     "subtitle_position": "bottom",
     "subtitle_display_mode": "sentence",
     "subtitle_animation": "none",
@@ -665,7 +665,7 @@ def _initialize_session_state():
         if recovered is not None:
             st.session_state["cross_post_recovery_checked"] = True
 
-    saved_ui_language = config.ui.get("language", "")
+    saved_ui_language = config.ui.get("language", "vi")
     browser_locale = st.context.locale
     initial_ui_language = utils.resolve_ui_language(
         saved_language=saved_ui_language,
@@ -2183,7 +2183,7 @@ def get_llm_provider_tips(provider_id, **kwargs):
     # 统一使用英文，避免在 locale 中复制英文后长期不同步。后续某个语种完成
     # 全量翻译后，再将它加入这里的独立维护范围。
     ui_language = st.session_state.get("ui_language", "en")
-    tips_language = ui_language if ui_language in {"zh", "en"} else "en"
+    tips_language = ui_language if ui_language in {"zh", "en", "vi"} else "en"
     tips = (
         locales.get(tips_language, {}).get("Translation", {}).get(provider.tips_key, "")
     )
@@ -2191,7 +2191,7 @@ def get_llm_provider_tips(provider_id, **kwargs):
         return tips
 
     service_endpoint = provider.preferred_service_endpoint(
-        prefer_international=tips_language == "en"
+        prefer_international=tips_language != "zh"
     )
     api_key_url = (
         service_endpoint.api_key_url
@@ -2210,7 +2210,7 @@ def get_llm_provider_tips(provider_id, **kwargs):
             service_endpoint.model_docs_url
             if service_endpoint and service_endpoint.model_docs_url
             else provider.effective_model_docs_url(
-                prefer_international=tips_language == "en"
+                prefer_international=tips_language != "zh"
             )
         ),
         **{
@@ -2260,7 +2260,7 @@ def get_tts_provider_tips(provider_id):
     # TTS 配置说明与 LLM Provider 采用相同维护策略：只维护中英文，
     # 其它界面语言统一回退英文，避免复制后长期不同步。
     ui_language = st.session_state.get("ui_language", "en")
-    tips_language = ui_language if ui_language in {"zh", "en"} else "en"
+    tips_language = ui_language if ui_language in {"zh", "en", "vi"} else "en"
     return (
         locales.get(tips_language, {})
         .get("Translation", {})
@@ -2271,7 +2271,7 @@ def get_tts_provider_tips(provider_id):
 def localized_widget_key(name, *parts):
     # 部分 Streamlit selectbox 使用稳定 key 记住选择状态，但展示文本来自 locale。
     # 语言切换时把语言也放进 key，可以强制重建控件，避免选中项仍显示旧语言。
-    language = st.session_state.get("ui_language", config.ui.get("language", ""))
+    language = st.session_state.get("ui_language", config.ui.get("language", "vi"))
     suffix_parts = [name, language, *[str(part) for part in parts if part]]
     return "_".join(suffix_parts)
 
